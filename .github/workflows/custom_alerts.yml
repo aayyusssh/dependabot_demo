@@ -41,10 +41,11 @@ jobs:
 
       - name: Notify on Slack
         if: ${{ env.ALERT_COUNT > 0 }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-        run: |
-          # Send notification to Slack
-          curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository!"}' \
-            $SLACK_WEBHOOK_URL
+        
+        uses: kunalnagarco/action-cve@v1.7.15
+
+        with:
+
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # This secret need to be created
+
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }} # This secret need to be created
