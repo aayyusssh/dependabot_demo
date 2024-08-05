@@ -28,7 +28,7 @@ jobs:
 
         with:
 
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # This secret need to be created
+          token: ${{ secrets.dependabot-alerts }} # This secret need to be created
 
           slack_webhook: ${{ secrets.SLACK_WEBHOOK }} # This secret need to be created
 
