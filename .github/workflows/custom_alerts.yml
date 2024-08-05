@@ -1,0 +1,25 @@
+name: Notify on Dependabot Alerts
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Dependabot Alerts
+        id: check_alerts
+        run: |
+          ALERTS=$(gh alert list --state open | grep -i dependabot | wc -l)
+          echo "ALERTS_COUNT=$ALERTS" >> $GITHUB_ENV
+
+      - name: Send Notification to Slack
+        if: ${{ env.ALERTS_COUNT > 0 }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 Dependabot found ${{ env.ALERTS_COUNT }} vulnerabilities in your code!"}' $SLACK_WEBHOOK_URL
