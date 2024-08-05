@@ -39,7 +39,26 @@ jobs:
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
 
-      - name: Notify on Slack
+      - name: Check if PR is from Dependabot
+        id: check-dependabot
+        run: |
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "Dependabot PR detected"
+            echo "notify=true" >> $GITHUB_ENV
+          else
+            echo "No notification"
+            echo "notify=false" >> $GITHUB_ENV
+          fi
+
+      - name: Send Slack Notification For Dependabot PR
+        if: env.notify == 'true'
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          slack_token: ${{ secrets.SLACK_WEBHOOK }}
+          channel: '#your-channel'
+          text: "A new PR has been created or updated by Dependabot: ${{ github.event.pull_request.html_url }}"
+
+      - name: Notify on Slack for Vulnerabilites
         if: ${{ env.ALERT_COUNT > 0 }}
         
         uses: kunalnagarco/action-cve@v1.7.15
