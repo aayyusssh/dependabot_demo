@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up GitHub CLI
+      - name: Set up GitHub CLI and jq
         run: |
           sudo apt-get update
           sudo apt-get install gh jq
@@ -35,16 +35,26 @@ jobs:
 
           # Count the number of alerts
           alert_count=$(echo "$response" | jq '. | length')
-          
+
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
 
+          # Process the alert details
+          if [ "$alert_count" -gt 0 ]; then
+            # Extract details for each alert
+            alert_details=$(echo "$response" | jq -r '
+              .[] | 
+              "Package name: \(.package.name)\nVulnerability Version Range: \(.vulnerability.range)\nPatched Version: \(.vulnerability.patched_versions[0])\nSeverity: \(.vulnerability.severity)\nSummary: \(.vulnerability.summary)\n\n"
+            ')
+            echo "ALERT_DETAILS=$alert_details" >> $GITHUB_ENV
+          fi
+
       - name: Notify on Slack
-        if: ${{ env.ALERT_COUNT >= 0 }}
+        if: ${{ env.ALERT_COUNT > 0 }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           # Send notification to Slack
           curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository ${{ github.repository }}! \n $response"}' \
+            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository!\n\nDetails:\n${{ env.ALERT_DETAILS }}"}' \
             $SLACK_WEBHOOK_URL
