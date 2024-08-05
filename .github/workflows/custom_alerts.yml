@@ -33,15 +33,84 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/dependabot/alerts)
           
-          # output response
           echo "$response" > alerts.json
-          echo alerts.json
-          cat alerts.json
+ 
           
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
         
-
+      - name: Format Alerts for Slack
+        id: format_for_slack
+        run: |
+          # Process the JSON data and format it for Slack
+          jq -r '
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "block_id": "vulnerability_alerts",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Vulnerability Alerts*"
+                  }
+                },
+                (.[] | {
+                  "type": "section",
+                  "block_id": .id,
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Dependency:* " + .dependency
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Manifest Path:* " + .manifest_path
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Scope:* " + .scope
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Summary:* " + .summary
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Description:* " + .description
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Severity:* " + .severity
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*CVSS Score:* " + (.cvss_score | tostring)
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*CVSS Vector:* " + .cvss_vector
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*CWE:* " + .cwe
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*First Patched Version:* " + .first_patched_version
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*References:* " + (["<" + .references[].url + "|" + .references[].url + ">"] | join(", "))
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Alert URL:* <" + .alert_url + "|View Alert>"
+                    }
+                  ]
+                })
+              ]
+            }' alerts.json > slack_message.json
+            
       - name: Notify on Slack
         if: ${{ env.ALERT_COUNT > 0 }}
         env:
@@ -49,5 +118,5 @@ jobs:
         run: |
           # Send notification to Slack
           curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository ${{ github.repository}}!"}' \
+            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository ${{ github.repository}} /n $(cat slack_message.json)!"}' \
             $SLACK_WEBHOOK_URL
