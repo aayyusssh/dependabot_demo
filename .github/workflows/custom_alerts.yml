@@ -33,14 +33,12 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/dependabot/alerts)
           
-          # Alert details
-          alert_details=$(echo "$response")
-          # Count the number of alerts
-          alert_count=$(echo "$response" | jq '. | length')
+          # output response
+          echo "$response"
           
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
-          echo "ALERT_DETAILS=$alert_details" >> $GITHUB_ENV
+        
 
       - name: Notify on Slack
         if: ${{ env.ALERT_COUNT > 0 }}
@@ -49,5 +47,5 @@ jobs:
         run: |
           # Send notification to Slack
           curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository ${{ github.repository}} /n ${{ env.ALERT_DETAILS }}!"}' \
+            --data '{"text":"🚨 Dependabot found ${{ env.ALERT_COUNT }} vulnerabilities in your repository ${{ github.repository}}!"}' \
             $SLACK_WEBHOOK_URL
