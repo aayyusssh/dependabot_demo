@@ -47,7 +47,7 @@ jobs:
             echo "notify=true" >> $GITHUB_ENV
           else
             echo "No notification"
-            echo "notify=true" >> $GITHUB_ENV
+            echo "notify=false" >> $GITHUB_ENV
           fi
 
       - name: Send Slack Notification For Dependabot PR
