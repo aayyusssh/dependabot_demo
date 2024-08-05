@@ -47,7 +47,7 @@ jobs:
             echo "notify=true" >> $GITHUB_ENV
           else
             echo "No notification"
-            echo "notify=false" >> $GITHUB_ENV
+            echo "notify=true" >> $GITHUB_ENV
           fi
 
       - name: Send Slack Notification For Dependabot PR
@@ -61,7 +61,6 @@ jobs:
       - name: Notify on Slack for Vulnerabilites
         if: ${{ env.ALERT_COUNT > 0 }}
         
-        uses: kunalnagarco/action-cve@v1.7.15
 
         with:
 
