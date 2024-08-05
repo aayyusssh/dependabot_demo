@@ -34,7 +34,9 @@ jobs:
             /repos/${{ github.repository }}/dependabot/alerts)
           
           # output response
-          echo "$response"
+          echo "$response" > alerts.json
+          echo alerts.json
+          cat alerts.json
           
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
