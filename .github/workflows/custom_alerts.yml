@@ -35,16 +35,20 @@ jobs:
 
           # Count the number of alerts
           alert_count=$(echo "$response" | jq '. | length')
-
+          
           # Set the alert count as an output
           echo "ALERT_COUNT=$alert_count" >> $GITHUB_ENV
 
           # Process the alert details
           if [ "$alert_count" -gt 0 ]; then
-            # Extract details for each alert
+            # Extract details for each alert with default values for missing fields
             alert_details=$(echo "$response" | jq -r '
               .[] | 
-              "Package name: \(.package.name)\nVulnerability Version Range: \(.vulnerability.range)\nPatched Version: \(.vulnerability.patched_versions[0])\nSeverity: \(.vulnerability.severity)\nSummary: \(.vulnerability.summary)\n\n"
+              "Package name: \(.package.name // "N/A")\n
+              Vulnerability Version Range: \(.vulnerability.range // "N/A")\n
+              Patched Version: \(.vulnerability.patched_versions[0] // "N/A")\n
+              Severity: \(.vulnerability.severity // "N/A")\n
+              Summary: \(.vulnerability.summary // "N/A")\n\n"
             ')
             echo "ALERT_DETAILS=$alert_details" >> $GITHUB_ENV
           fi
