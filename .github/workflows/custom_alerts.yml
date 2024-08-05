@@ -61,7 +61,8 @@ jobs:
       - name: Notify on Slack for Vulnerabilites
         if: ${{ env.ALERT_COUNT > 0 }}
         
-
+        uses: kunalnagarco/action-cve@v1.7.15
+        
         with:
 
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # This secret need to be created
