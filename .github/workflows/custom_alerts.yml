@@ -54,7 +54,7 @@ jobs:
         if: env.notify == 'true'
         uses: slackapi/slack-github-action@v1.22.0
         with:
-          slack_token: ${{ secrets.SLACK_WEBHOOK }}
+          botToken: ${{ secrets.SLACK_WEBHOOK }}
           channel: '#your-channel'
           text: "A new PR has been created or updated by Dependabot: ${{ github.event.pull_request.html_url }}"
 
